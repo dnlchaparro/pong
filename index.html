@@ -17,9 +17,47 @@
 </head>
 
 <body id="body" onload="createCanvas()">
-    <div class="main_title" id="mainTitle">
-        <h1>Pong</h1>
+    <div id="mainTitle">
+        <h1 class="main_title">Pong</h1>
+        <p class="main_title">First to 5 goals wins</p>
     </div>
+    <div class="options" id="options">
+        <div class="difficulty-selected" id="easy">Easy</div>
+        <div class="difficulty" id="medium">Medium</div>
+        <div class="difficulty" id="hard">Hard</div>
+        <div class="difficulty" id="impossible">Impossible</div>
+    </div>
+
 </body>
+<script>
+document.getElementById("easy").onclick = function() {
+    changeDifficulty(.3)
+    document.getElementById("easy").className = "difficulty-selected";
+    document.getElementById("medium").className = "difficulty";
+    document.getElementById("hard").className = "difficulty";
+    document.getElementById("impossible").className = "difficulty";
+};
+document.getElementById("medium").onclick = function() {
+    changeDifficulty(.65)
+    document.getElementById("easy").className = "difficulty";
+    document.getElementById("medium").className = "difficulty-selected";
+    document.getElementById("hard").className = "difficulty";
+    document.getElementById("impossible").className = "difficulty";
+};
+document.getElementById("hard").onclick = function() {
+    changeDifficulty(.85)
+    document.getElementById("easy").className = "difficulty";
+    document.getElementById("medium").className = "difficulty";
+    document.getElementById("hard").className = "difficulty-selected";
+    document.getElementById("impossible").className = "difficulty";
+};
+document.getElementById("impossible").onclick = function() {
+    changeDifficulty(1)
+    document.getElementById("easy").className = "difficulty";
+    document.getElementById("medium").className = "difficulty";
+    document.getElementById("hard").className = "difficulty";
+    document.getElementById("impossible").className = "difficulty-selected";
+};
+</script>
 
 </html>

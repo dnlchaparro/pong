@@ -1,12 +1,15 @@
 var canvas = null;
+var ended = false;
+var goals = 5;
 var ctx = null;
 var yPlayer = 0;
 var yOpponent = 0;
 var height = 0;
+var movement = 0;
 var paddle = new Object();
 var dt = 50;
 var dtPaddle = 25;
-var difficulty = .5;
+var difficulty = .4;
 var ball = {
     r: 0,
     x: 0,
@@ -21,7 +24,7 @@ var score = {
     opponent: 0
 };
 
-function startPaddle(paddle, height, context, canvas) {
+function startGame(paddle, height, context, canvas) {
     yPlayer = 8;
     yOpponent = height - 8 - paddle.paddleHeight;
     yMax = yOpponent;
@@ -29,30 +32,38 @@ function startPaddle(paddle, height, context, canvas) {
     this.height = height;
     ctx = context;
     this.canvas = canvas;
-    ctx.fillStyle = "#c4d8e2";
-    ctx.fillRect(8, yPlayer, paddle.paddleWidth, paddle.paddleHeight);
-    ctx.fillRect(height * 2 - 8 - paddle.paddleWidth, yOpponent, paddle.paddleWidth, paddle.paddleHeight);
+    movement = 10 * height / 512;
     ball.x = height;
     ball.y = height / 2;
     ball.r = height / 40;
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.r, 0, 2 * Math.PI);
-    ctx.fill();
+    drawBoard();
+    drawPaddles();
+    drawBall();
+    ctx.fillStyle = "rgba(119, 110, 226, 0.8)";
+    ctx.fillRect(0, 0, height * 2, height);
+    var font = "px Courier New";
+    var size = height / 5;
+    ctx.fillStyle = "#060606";
+    ctx.font = size + font;
+    ctx.fillText("Press 'up' key", 2 * height / 11, 2 * height / 3 - height / 5);
+    ctx.fillText("to play", 2 * height / 9 + height / 3, 2 * height / 3);
 };
 
 
 // Move paddle
 window.addEventListener('keydown', this.check, false);
 
+
 function check(e) {
+    ended = false;
     switch (e.keyCode) {
         case 38: // Move up
             if (ball.vx === 0) {
                 startMoving();
             }
             drawBoard();
-            if (yPlayer - 10 >= yMin) {
-                yPlayer -= 10;
+            if (yPlayer - movement >= yMin) {
+                yPlayer -= movement;
             } else {
                 yPlayer = yMin;
             }
@@ -64,8 +75,8 @@ function check(e) {
                 startMoving();
             }
             drawBoard();
-            if (yPlayer + 10 <= yMax) {
-                yPlayer += 10;
+            if (yPlayer + movement <= yMax) {
+                yPlayer += movement;
             } else {
                 yPlayer = yMax;
             }
@@ -77,14 +88,14 @@ function check(e) {
 
 function startMoving() {
     if (Math.random() < .5) {
-        ball.vx = 20;
+        ball.vx = 20 * height / 512;
     } else {
-        ball.vx = -20;
+        ball.vx = -20 * height / 512;
     }
     if (Math.random() < .5) {
-        ball.vy = 20;
+        ball.vy = 20 * height / 512;
     } else {
-        ball.vy = -20;
+        ball.vy = -20 * height / 512;
     }
     doTimer();
 };
@@ -97,6 +108,7 @@ function doTimer() {
 
 // Move ball
 function moveBall() {
+
     drawBoard();
     // Update ball direction
     var yCenter = ball.y + ball.vy * dt / 100;
@@ -120,6 +132,10 @@ function moveBall() {
             ball.vy = 0;
             clearInterval(timerID);
             clearInterval(timerID2);
+            if (score.opponent === goals) {
+                endGame("You Lose!");
+                ended = true;
+            }
         } else {
             // Player scores
             score.player += 1;
@@ -129,13 +145,19 @@ function moveBall() {
             ball.vy = 0;
             clearInterval(timerID);
             clearInterval(timerID2);
+            if (score.player === goals) {
+                endGame("You Win!");
+                ended = true;
+            }
         }
     }
     // Update ball position
-    ball.x += ball.vx * dt / 100;
-    ball.y += ball.vy * dt / 100;
-    drawBall();
-    drawPaddles();
+    if (!ended) {
+        ball.x += ball.vx * dt / 100;
+        ball.y += ball.vy * dt / 100;
+        drawBall();
+        drawPaddles();
+    }
 };
 
 
@@ -152,25 +174,25 @@ function moveOpponent() {
 
     if (Math.random() < difficulty) {
         if (ball.x < height) { // Move to the center position
-            if (height / 2 - paddleCenter > -11 && height / 2 - paddleCenter < 11) {
+            if (height / 2 - paddleCenter > -movement - 1 && height / 2 - paddleCenter < movement + 1) {
                 yOpponent = height / 2 - paddle.paddleHeight / 2;
             } else {
-                if (height / 2 - paddleCenter < -10) {
-                    yOpponent -= 10;
+                if (height / 2 - paddleCenter < -movement) {
+                    yOpponent -= movement;
                 } else {
-                    yOpponent += 10;
+                    yOpponent += movement;
                 }
             }
         } else { // Move to the ball position
             if (error > 0) {
-                if (yOpponent - 10 >= yMin) {
-                    yOpponent -= 10;
+                if (yOpponent - movement >= yMin) {
+                    yOpponent -= movement;
                 } else {
                     yOpponent = yMin;
                 }
             } else {
-                if (yOpponent + 10 <= yMax) {
-                    yOpponent += 10;
+                if (yOpponent + movement <= yMax) {
+                    yOpponent += movement;
                 } else {
                     yOpponent = yMax;
                 }
@@ -179,22 +201,45 @@ function moveOpponent() {
     }
 };
 
+function endGame(winner) {
+    score.player = 0;
+    score.opponent = 0;
+    ctx.fillStyle = "rgba(119, 110, 226, 0.8)";
+    ctx.fillRect(0, 0, height * 2, height);
+    var font = "px Courier New";
+    var size = height / 5;
+    ctx.fillStyle = "#060606";
+    ctx.font = size + font;
+    ctx.fillText(winner, height / 2, height / 2 - height / 5);
+    ctx.fillText("Press 'up' key", 2 * height / 11, 2 * height / 3 - height / 5);
+    ctx.fillText("to play again", 2 * height / 11, 6 * height / 7 - height / 5);
+    yPlayer = 8;
+    yOpponent = height - 8 - paddle.paddleHeight;
+};
+
 function drawBoard() {
+    /*
+    $(window).resize(function() {
+        height = $(window).height() - $("#mainTitle").height() * 2 - 5;
+    });*/
+
     ctx.fillStyle = "#c4d8e2";
     ctx.fillRect(0, 0, height * 2, height);
     ctx.clearRect(5, 5, height - 7.5, height - 10);
     ctx.clearRect(height + 2.5, 5, height - 7.5, height - 10);
     ctx.beginPath();
     ctx.lineWidth = 5;
+    ctx.strokeStyle = "#c4d8e2";
     ctx.arc(height, height / 2, height / 8, 0, 2 * Math.PI);
     ctx.stroke();
-    ctx.fillStyle = "#1d1d1d";
+    ctx.fillStyle = "#060606";
     ctx.beginPath();
     ctx.arc(height, height / 2, height / 8 - 2, 0, 2 * Math.PI);
     ctx.fill();
 };
 
 function drawBall() {
+    drawScore();
     ctx.fillStyle = "#c4d8e2";
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, ball.r, 0, 2 * Math.PI);
@@ -205,4 +250,17 @@ function drawPaddles() {
     ctx.fillStyle = "#c4d8e2";
     ctx.fillRect(8, yPlayer, paddle.paddleWidth, paddle.paddleHeight);
     ctx.fillRect(height * 2 - 8 - paddle.paddleWidth, yOpponent, paddle.paddleWidth, paddle.paddleHeight);
+};
+
+function drawScore() {
+    var font = "px Courier New";
+    var size = height / 2;
+    ctx.fillStyle = "#587fcc";
+    ctx.font = size + font;
+    ctx.fillText(score.player, height / 3, 2 * height / 3);
+    ctx.fillText(score.opponent, 4 * height / 3, 2 * height / 3);
+}
+
+function changeDifficulty(difficulty) {
+    this.difficulty = difficulty;
 };
