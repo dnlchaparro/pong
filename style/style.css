@@ -1,0 +1,17 @@
+body {
+    font-size: 16px;
+    font-weight: 400;
+    background: #1d1d1d;
+    color: #c4d8e2;
+}
+#gameCanvas {
+    /*border-style: outset;
+    border-color: #c4d8e2;
+    border-width: 5px;*/
+}
+#gameContainer {} .main_title {
+    margin-top: -20px;
+    text-align: center;
+    font-size: 28px;
+    font-family: "Courier New", Courier, monospace;
+}
